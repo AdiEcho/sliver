@@ -49,7 +49,7 @@ type TokenAuth struct {
 	token string
 }
 
-// Return value is mapped to request headers.
+// GetRequestMetadata Return value is mapped to request headers.
 func (t TokenAuth) GetRequestMetadata(ctx context.Context, in ...string) (map[string]string, error) {
 	return map[string]string{
 		"Authorization": "Bearer " + t.token,

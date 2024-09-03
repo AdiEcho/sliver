@@ -19,6 +19,7 @@ package encoders
 */
 
 import (
+	"bytes"
 	"crypto/rand"
 	"embed"
 	"encoding/binary"
@@ -40,12 +41,14 @@ import (
 	// {{end}}
 )
 
-var (
+const (
 	EncoderModulus = uint64(65537)
 	MaxN           = uint64(9999999)
+)
 
+var (
 	Base32EncoderID, _  = strconv.ParseUint(`{{.Encoders.Base32EncoderID}}`, 10, 64)
-	Base58EncoderID, _  = strconv.ParseUint(`.Encoders.Base58EncoderID}}`, 10, 64)
+	Base58EncoderID, _  = strconv.ParseUint(`{{.Encoders.Base58EncoderID}}`, 10, 64)
 	Base64EncoderID, _  = strconv.ParseUint(`{{.Encoders.Base64EncoderID}}`, 10, 64)
 	EnglishEncoderID, _ = strconv.ParseUint(`{{.Encoders.EnglishEncoderID}}`, 10, 64)
 	GzipEncoderID, _    = strconv.ParseUint(`{{.Encoders.GzipEncoderID}}`, 10, 64)
@@ -90,9 +93,11 @@ var (
 // EncoderMap - Maps EncoderIDs to Encoders
 var EncoderMap = map[uint64]Encoder{}
 
-// EncoderMap - Maps EncoderIDs to Encoders
+// NativeEncoderMap - Maps EncoderIDs to Encoders
 var NativeEncoderMap = map[uint64]Encoder{
 	Base64EncoderID:  Base64,
+	Base58EncoderID:  Base58,
+	Base32EncoderID:  Base32,
 	HexEncoderID:     Hex,
 	EnglishEncoderID: English,
 	GzipEncoderID:    Gzip,
@@ -111,11 +116,17 @@ type Encoder interface {
 
 // EncoderFromNonce - Convert a nonce into an encoder
 func EncoderFromNonce(nonce uint64) (uint64, Encoder, error) {
+	var useMap map[uint64]Encoder
+	if len(EncoderMap) > 0 {
+		useMap = EncoderMap
+	} else {
+		useMap = NativeEncoderMap
+	}
 	encoderID := nonce % EncoderModulus
 	if encoderID == 0 {
 		return 0, new(NoEncoder), nil
 	}
-	if encoder, ok := EncoderMap[encoderID]; ok {
+	if encoder, ok := useMap[encoderID]; ok {
 		return encoderID, encoder, nil
 	}
 	return 0, nil, errors.New("invalid encoder nonce")
@@ -224,4 +235,17 @@ func loadEnglishDictionaryFromAssets() error {
 		rawEnglishDictionary = append(rawEnglishDictionary, strings.TrimSpace(word))
 	}
 	return nil
+}
+
+func UintToBytes(n uint64) []byte {
+	byteBuf := bytes.NewBuffer([]byte{})
+	binary.Write(byteBuf, binary.BigEndian, n)
+	return byteBuf.Bytes()
+}
+
+func BytesToUint(bys []byte) uint64 {
+	byteBuff := bytes.NewBuffer(bys)
+	var data uint64
+	binary.Read(byteBuff, binary.BigEndian, &data)
+	return data
 }

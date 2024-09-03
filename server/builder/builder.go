@@ -172,7 +172,7 @@ func (b *Builder) handleBuildEvent(event *clientpb.Event) {
 	extModel := models.ImplantConfigFromProtobuf(extConfig.Config)
 
 	builderLog.Infof("Building %s for %s/%s (format: %s)", extConfig.Build.Name, extConfig.Config.GOOS, extConfig.Config.GOARCH, extConfig.Config.Format)
-	builderLog.Infof("    [c2] mtls:%t wg:%t http/s:%t dns:%t", extModel.IncludeMTLS, extModel.IncludeWG, extModel.IncludeHTTP, extModel.IncludeDNS)
+	builderLog.Infof("    [c2] mtls:%t wg:%t http/s:%t dns:%t ws:%t", extModel.IncludeMTLS, extModel.IncludeWG, extModel.IncludeHTTP, extModel.IncludeDNS, extModel.IncludeWS)
 	builderLog.Infof("[pivots] tcp:%t named-pipe:%t", extModel.IncludeTCP, extModel.IncludeNamePipe)
 
 	b.rpc.BuilderTrigger(context.Background(), &clientpb.Event{

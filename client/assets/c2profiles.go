@@ -83,4 +83,7 @@ type HTTPC2ImplantConfig struct {
 	CloseFileExt string   `json:"close_file_ext"`
 	CloseFiles   []string `json:"close_files"`
 	ClosePaths   []string `json:"close_paths"`
+
+	// WebSocket
+	WebSocketFileExt string `json:"websocket_file_ext"`
 }

@@ -20,6 +20,7 @@ package core
 
 import (
 	"errors"
+	"github.com/bishopfox/sliver/implant/sliver/transports/wsclient"
 	"sync"
 	"time"
 
@@ -86,7 +87,7 @@ func (s *Session) LastCheckin() time.Time {
 func (s *Session) IsDead() bool {
 	sessionsLog.Debugf("Checking health of %s", s.ID)
 	sessionsLog.Debugf("Last checkin was %v", s.LastCheckin())
-	padding := time.Duration(10 * time.Second) // Arbitrary margin of error
+	padding := 10 * time.Second // Arbitrary margin of error
 	timePassed := time.Since(s.LastCheckin())
 	reconnect := time.Duration(s.ReconnectInterval)
 	pollTimeout := time.Duration(s.PollTimeout)
@@ -107,7 +108,13 @@ func (s *Session) IsDead() bool {
 		}
 	}
 	if s.Connection.Transport == "pivot" {
-		if time.Since(s.Connection.GetLastMessage()) < time.Duration(time.Minute)+padding {
+		if time.Since(s.Connection.GetLastMessage()) < time.Minute+padding {
+			sessionsLog.Debugf("Last message within pivot/server ping interval with padding")
+			return false
+		}
+	}
+	if s.Connection.Transport == consts.WsStr || s.Connection.Transport == consts.WssStr {
+		if timePassed < wsclient.PingInterval+padding {
 			sessionsLog.Debugf("Last message within pivot/server ping interval with padding")
 			return false
 		}

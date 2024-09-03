@@ -509,6 +509,8 @@ func (s *SliverHTTPC2) mainHandler(resp http.ResponseWriter, req *http.Request) 
 		} else if extension == c2Config.ImplantConfig.SessionFileExtension {
 			s.sessionHandler(resp, req)
 			return
+		} else if extension == c2Config.ImplantConfig.WebSocketFileExtension {
+			s.websocketHandler(resp, req)
 		} else {
 			s.defaultHandler(resp, req)
 			return

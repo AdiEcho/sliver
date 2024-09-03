@@ -231,7 +231,7 @@ func sessionStartup() {
 		if connection != nil {
 			err := sessionMainLoop(connection)
 			if err != nil {
-				if err == ErrTerminate {
+				if errors.Is(err, ErrTerminate) {
 					connection.Cleanup()
 					return
 				}

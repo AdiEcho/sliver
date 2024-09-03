@@ -626,7 +626,10 @@ func ParseHTTPc2(args string) ([]*clientpb.ImplantC2, error) {
 	for index, arg := range allArguments {
 		var uri *url.URL
 		var err error
-		if cmp := strings.ToLower(arg); strings.HasPrefix(cmp, "http://") || strings.HasPrefix(cmp, "https://") {
+		if cmp := strings.ToLower(arg); strings.HasPrefix(cmp, "http://") ||
+			strings.HasPrefix(cmp, "https://") ||
+			strings.HasPrefix(cmp, "ws://") ||
+			strings.HasPrefix(cmp, "wss://") {
 			uri, err = url.Parse(arg)
 			if err != nil {
 				return nil, err
@@ -638,7 +641,7 @@ func ParseHTTPc2(args string) ([]*clientpb.ImplantC2, error) {
 			}
 		}
 		uri.Path = strings.TrimSuffix(uri.Path, "/")
-		if uri.Scheme != "http" && uri.Scheme != "https" {
+		if uri.Scheme != "http" && uri.Scheme != "https" && uri.Scheme != "ws" && uri.Scheme != "wss" {
 			return nil, fmt.Errorf("invalid http(s) scheme: %s", uri.Scheme)
 		}
 		if ok, err := hasValidC2AdvancedOptions(uri.Query()); !ok {

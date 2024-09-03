@@ -32,6 +32,10 @@ func SliverExternal(name string, config *clientpb.ImplantConfig) (*clientpb.Exte
 	config.IncludeDNS = models.IsC2Enabled([]string{"dns"}, config.C2)
 	config.IncludeNamePipe = models.IsC2Enabled([]string{"namedpipe"}, config.C2)
 	config.IncludeTCP = models.IsC2Enabled([]string{"tcppivot"}, config.C2)
+	config.IncludeWS = models.IsC2Enabled([]string{"ws", "wss"}, config.C2)
+	if config.IncludeWS {
+		config.IncludeHTTP = true
+	}
 
 	build, err := GenerateConfig(name, config)
 	if err != nil {

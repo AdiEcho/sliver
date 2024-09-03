@@ -180,6 +180,7 @@ type ImplantConfig struct {
 	IncludeWG   bool
 	IncludeHTTP bool
 	IncludeDNS  bool
+	IncludeWS   bool
 
 	CanaryDomains   []CanaryDomain
 	IncludeNamePipe bool
@@ -280,6 +281,7 @@ func (ic *ImplantConfig) ToProtobuf() *clientpb.ImplantConfig {
 
 		IncludeMTLS:     ic.IncludeMTLS,
 		IncludeHTTP:     ic.IncludeHTTP,
+		IncludeWS:       ic.IncludeWS,
 		IncludeDNS:      ic.IncludeDNS,
 		IncludeNamePipe: ic.IncludeNamePipe,
 		IncludeWG:       ic.IncludeWG,
@@ -463,6 +465,10 @@ func ImplantConfigFromProtobuf(pbConfig *clientpb.ImplantConfig) *ImplantConfig 
 	cfg.IncludeDNS = IsC2Enabled([]string{"dns"}, pbConfig.C2)
 	cfg.IncludeNamePipe = IsC2Enabled([]string{"namedpipe"}, pbConfig.C2)
 	cfg.IncludeTCP = IsC2Enabled([]string{"tcppivot"}, pbConfig.C2)
+	cfg.IncludeWS = IsC2Enabled([]string{"ws", "wss"}, pbConfig.C2)
+	if cfg.IncludeWS {
+		cfg.IncludeWS = true
+	}
 
 	cfg.WGPeerTunIP = pbConfig.WGPeerTunIP
 	cfg.WGKeyExchangePort = pbConfig.WGKeyExchangePort

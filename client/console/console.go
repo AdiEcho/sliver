@@ -542,6 +542,7 @@ func (con *SliverClient) GetActiveSessionConfig() *clientpb.ImplantConfig {
 		config.IncludeMTLS = true
 	case "http(s)":
 		config.IncludeHTTP = true
+		config.IncludeWS = true
 	case "dns":
 		config.IncludeDNS = true
 	case "wg":
@@ -589,6 +590,7 @@ func (con *SliverClient) GetActiveBeaconConfig() *clientpb.ImplantConfig {
 		config.IncludeMTLS = true
 	case "http":
 		config.IncludeHTTP = true
+		config.IncludeWS = true
 	case "dns":
 		config.IncludeDNS = true
 	case "wg":

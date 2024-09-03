@@ -284,6 +284,7 @@ func C2ConfigToJSON(profileName string, profile *clientpb.HTTPC2Config) (*assets
 		StartSessionFileExt: profile.ImplantConfig.StartSessionFileExtension,
 		SessionFileExt:      profile.ImplantConfig.SessionFileExtension,
 		CloseFileExt:        profile.ImplantConfig.CloseFileExtension,
+		WebSocketFileExt:    profile.ImplantConfig.WebSocketFileExtension,
 	}
 
 	var headers []assets.NameValueProbability
@@ -469,6 +470,7 @@ func C2ConfigToProtobuf(profileName string, config *assets.HTTPC2Config) *client
 		StartSessionFileExtension: config.ImplantConfig.StartSessionFileExt,
 		SessionFileExtension:      config.ImplantConfig.SessionFileExt,
 		CloseFileExtension:        config.ImplantConfig.CloseFileExt,
+		WebSocketFileExtension:    config.ImplantConfig.WebSocketFileExt,
 		PathSegments:              pathSegments,
 	}
 
@@ -618,6 +620,10 @@ func PrintC2Profiles(profile *clientpb.HTTPC2Config, con *console.SliverClient) 
 		"Close file extension",
 		profile.ImplantConfig.CloseFileExtension,
 	})
+	tw.AppendRow(table.Row{
+		"Websocket file extension",
+		profile.ImplantConfig.WebSocketFileExtension,
+	})
 
 	var (
 		pollPaths    []string
@@ -765,6 +771,7 @@ func updateC2Profile(usedExtensions []string, template *assets.HTTPC2Config, url
 	template.ImplantConfig.StartSessionFileExt = extensions[2]
 	template.ImplantConfig.SessionFileExt = extensions[3]
 	template.ImplantConfig.CloseFileExt = extensions[4]
+	template.ImplantConfig.WebSocketFileExt = extensions[5]
 
 	// randomly distribute the paths and filenames into the different segment types
 	template.ImplantConfig.CloseFiles = []string{}

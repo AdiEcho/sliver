@@ -19,6 +19,7 @@ package encoders
 */
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
@@ -252,7 +253,7 @@ func loadTrafficEncodersFromFS(encodersFS util.EncoderFS, logger func(string)) e
 
 // EncoderFromNonce - Convert a nonce into an encoder
 func EncoderFromNonce(nonce uint64) (uint64, util.Encoder, error) {
-	encoderID := uint64(nonce) % EncoderModulus
+	encoderID := nonce % EncoderModulus
 	if encoderID == 0 {
 		return 0, new(util.NoEncoder), nil
 	}
@@ -324,4 +325,17 @@ func (p PassthroughEncoderFS) ReadFile(name string) ([]byte, error) {
 		return nil, os.ErrNotExist
 	}
 	return os.ReadFile(localPath)
+}
+
+func UintToBytes(n uint64) []byte {
+	byteBuf := bytes.NewBuffer([]byte{})
+	binary.Write(byteBuf, binary.BigEndian, n)
+	return byteBuf.Bytes()
+}
+
+func BytesToUint(bys []byte) uint64 {
+	byteBuff := bytes.NewBuffer(bys)
+	var data uint64
+	binary.Read(byteBuff, binary.BigEndian, &data)
+	return data
 }

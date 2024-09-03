@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	DefaultChromeBaseVer = 106
+	DefaultChromeBaseVer = 112
 	DefaultMacOSVer      = "10_15_7"
 )
 
@@ -51,6 +51,7 @@ var (
 	ErrMissingKeyExchangeFileExt  = errors.New("implant config must specify a key_exchange_file_ext")
 	ErrTooFewKeyExchangeFiles     = errors.New("implant config must specify at least one key_exchange_files value")
 	ErrMissingCloseFileExt        = errors.New("implant config must specify a close_file_ext")
+	ErrMissingWebSocketFileExt    = errors.New("implant config must specify a websocket_file_ext")
 	ErrTooFewCloseFiles           = errors.New("implant config must specify at least one close_files value")
 	ErrMissingStartSessionFileExt = errors.New("implant config must specify a start_session_file_ext")
 	ErrMissingSessionFileExt      = errors.New("implant config must specify a session_file_ext")
@@ -130,6 +131,10 @@ func checkImplantConfig(config *clientpb.HTTPC2ImplantConfig) error {
 	if config.CloseFileExtension == "" {
 		return ErrMissingCloseFileExt
 	}
+	config.WebSocketFileExtension = coerceFileExt(config.WebSocketFileExtension)
+	if config.WebSocketFileExtension == "" {
+		return ErrMissingWebSocketFileExt
+	}
 
 	/*
 		User agent
@@ -169,6 +174,7 @@ func GenerateDefaultHTTPC2Config() *clientpb.HTTPC2Config {
 		StartSessionFileExtension: "html",
 		SessionFileExtension:      "php",
 		CloseFileExtension:        "png",
+		WebSocketFileExtension:    "json",
 		PathSegments:              pathSegments,
 	}
 

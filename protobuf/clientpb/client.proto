@@ -155,6 +155,7 @@ message ImplantConfig {
   bool IncludeDNS = 18;
   bool IncludeNamePipe = 19;
   bool IncludeTCP = 20;
+  bool IncludeWS = 21;
 
   string WGPeerTunIP = 32;
   uint32 WGKeyExchangePort = 33;
@@ -790,8 +791,9 @@ message HTTPC2ImplantConfig {
   string StartSessionFileExtension = 14;
   string SessionFileExtension = 15;
   string CloseFileExtension = 16;
+  string WebSocketFileExtension = 17;
 
-  repeated HTTPC2PathSegment PathSegments = 17;
+  repeated HTTPC2PathSegment PathSegments = 18;
 }
 
 message HTTPC2Cookie {

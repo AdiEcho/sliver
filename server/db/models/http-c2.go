@@ -134,6 +134,7 @@ type HttpC2ImplantConfig struct {
 	StartSessionFileExtension string
 	SessionFileExtension      string
 	CloseFileExtension        string
+	WebSocketFileExtension    string
 
 	PathSegments []HttpC2PathSegment
 }
@@ -173,6 +174,7 @@ func (h *HttpC2ImplantConfig) ToProtobuf() *clientpb.HTTPC2ImplantConfig {
 		StartSessionFileExtension: h.StartSessionFileExtension,
 		SessionFileExtension:      h.SessionFileExtension,
 		CloseFileExtension:        h.CloseFileExtension,
+		WebSocketFileExtension:    h.WebSocketFileExtension,
 		PathSegments:              pathSegments,
 	}
 }
@@ -352,7 +354,9 @@ func HTTPC2ConfigFromProtobuf(pbHttpC2Config *clientpb.HTTPC2Config) *HttpC2Conf
 		StartSessionFileExtension: pbHttpC2Config.ImplantConfig.StartSessionFileExtension,
 		SessionFileExtension:      pbHttpC2Config.ImplantConfig.SessionFileExtension,
 		CloseFileExtension:        pbHttpC2Config.ImplantConfig.CloseFileExtension,
-		PathSegments:              pathSegments,
+		WebSocketFileExtension:    pbHttpC2Config.ImplantConfig.WebSocketFileExtension,
+
+		PathSegments: pathSegments,
 	}
 
 	// C2 Config
@@ -374,6 +378,7 @@ func RandomizeImplantConfig(h *clientpb.HTTPC2ImplantConfig, goos string, goarch
 		StartSessionFileExtension: h.StartSessionFileExtension,
 		SessionFileExtension:      h.SessionFileExtension,
 		CloseFileExtension:        h.CloseFileExtension,
+		WebSocketFileExtension:    h.WebSocketFileExtension,
 		PathSegments:              RandomPathSegments(h),
 		UserAgent:                 GenerateUserAgent(goos, goarch, h.UserAgent, h.ChromeBaseVersion, h.MacOSVersion),
 		ChromeBaseVersion:         h.ChromeBaseVersion,

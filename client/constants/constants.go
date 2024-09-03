@@ -187,6 +187,8 @@ const (
 	DnsStr         = "dns"
 	HttpStr        = "http"
 	HttpsStr       = "https"
+	WsStr          = "websocket"
+	WssStr         = "websocket-secure"
 	NamedPipeStr   = "named-pipe"
 	TCPListenerStr = "tcp"
 	UDPListenerStr = "udp"
